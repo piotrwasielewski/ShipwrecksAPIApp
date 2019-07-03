@@ -19,6 +19,8 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 
 import retrofit2.Call;
@@ -32,6 +34,8 @@ public class MainActivity extends AppCompatActivity {
 
     HerokuAPI herokuAPI;
     String searchedType;
+
+    JSONObject responseJSON;
 
 
     EditText editQueryString;
@@ -65,6 +69,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 setCatalogContent();
                 Log.d("btnSzukaj", "onClick: klikam button");
+                Log.d("btnSzukaj", "onClick: rozmiar listy: "+questions.items.size());
+
             }
         });
 
@@ -133,6 +139,8 @@ public class MainActivity extends AppCompatActivity {
             if (response.isSuccessful()) {
                 // Pobranie danych z odpowiedzi serwera
                 questions = response.body();
+
+                //responseJSON = response.body();
                 Log.d("questionsCallback", "onResponse: pobrano dane z serwera ");
 
                 // Odświeżenie widoku listy i informacji o pobranych danych
