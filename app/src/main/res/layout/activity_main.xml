@@ -80,17 +80,20 @@
         android:id="@+id/imageView"
         android:layout_width="100dp"
         android:layout_height="100dp"
+        android:layout_gravity="center_horizontal"
         app:srcCompat="@drawable/skull" />
 
     <Button
         android:id="@+id/btnSzukaj"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignEnd="@+id/questionsListView"
         android:layout_alignRight="@+id/questionsListView"
         android:layout_alignParentStart="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentBottom="true"
+        android:elevation="6dp"
+        android:gravity="center_horizontal"
         android:text="Pobierz dane z API" />
 
     <!--<EditText-->
@@ -113,6 +116,10 @@
         android:id="@+id/spinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:backgroundTint="#3F51B5"
+        android:backgroundTintMode="src_in"
+        android:elevation="12dp"
+        android:foregroundTint="#4800BCD4"
         android:minHeight="24dp"
         android:scrollbarSize="8dp"
         android:spinnerMode="dropdown" />

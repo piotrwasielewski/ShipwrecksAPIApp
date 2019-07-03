@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity {
     QuestionsList<Question> questions;
     QuestionsList<Question> questionsBackup;
 
+    Boolean firstTime;
+
     ListView questionsListView;
     Context context = this;
     TextView questionsFound;
@@ -61,6 +63,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         editQueryString = findViewById(R.id.editQueryString);
 
+        firstTime = true;
         questions = new QuestionsList<Question>();
         questions.items = new ArrayList<Question>();
 
@@ -111,7 +114,10 @@ public class MainActivity extends AppCompatActivity {
                 else if (position == 2) searchedType = "Submerged";
                 else if (position == 3) searchedType = "dangerous";
 
-                questionsFound.setText("Filtruję dane");
+                if (!firstTime) {
+                    questionsFound.setText("Filtruję dane");
+                    firstTime = false;
+                }
                 Log.d("questBackup.items PRZED", "onItemSelected: "+questionsBackup.items.size());
                 if (questions.items.size() > 3) {
                     Log.d("questions.items PRZED", "onItemSelected: " + questions.items.size());
