@@ -1,5 +1,10 @@
 package pl.jezigielka.shipwrecksapiapp;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
@@ -14,7 +19,7 @@ public interface HerokuAPI {
 
         @Headers("Content-Type: application/json")
         @GET("shipwrecks")
-        Call<QuestionsList<Question>> getQuestions();
+        Call<JSONArray> getQuestions();
 
 
 //        @GET("shipwrecks")

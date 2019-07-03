@@ -19,6 +19,8 @@ import android.widget.TextView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
@@ -28,6 +30,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+
+import static retrofit2.converter.gson.GsonConverterFactory.create;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -69,7 +73,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 setCatalogContent();
                 Log.d("btnSzukaj", "onClick: klikam button");
-                Log.d("btnSzukaj", "onClick: rozmiar listy: "+questions.items.size());
+//                Log.d("btnSzukaj", "onClick: rozmiar listy: "+questions.items.size());
 
             }
         });
@@ -109,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
         // Filtr GSON będzie automatycznie tłumaczył pobrany plik JSON na obiekty Javy
         Gson gson = new GsonBuilder()
                 .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+                .setLenient()
                 .create();
 
         // Fabryka buduje obiekt retrofit służący do pobierania danych
@@ -133,12 +138,45 @@ public class MainActivity extends AppCompatActivity {
     // Funkcje zwrotne wywoływane po zakończeniu zapytania API
     // Zawsze trzeba zdefiniować zachowanie Retrofita po udanym wywołaniu (onResponse)
     // i po błędzie (onFailure)
-    Callback<QuestionsList<Question>> questionsCallback = new Callback<QuestionsList<Question>>() {
+    Callback <JSONArray> questionsCallback = new Callback<JSONArray>() {
         @Override
-        public void onResponse(Call<QuestionsList<Question>> call, Response<QuestionsList<Question>> response) {
+        public void onResponse(Call<JSONArray> call, Response<JSONArray> response) {
             if (response.isSuccessful()) {
                 // Pobranie danych z odpowiedzi serwera
-                questions = response.body();
+                JSONArray responseArrayList = response.body();
+                Log.d("response ArrayList", "onResponse: Array size:"+responseArrayList.length());
+                try {
+                    Log.d("response ArrayList", "Element[0] z arraylisty"+responseArrayList.getJSONObject(0).toString());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                for (int i=0; i<responseArrayList.length(); i++) {
+                   // Log.d("JSON", "onResponse: klasa obiektu w responseArrayList= "+object.getClass());
+                    String objectString = "test";
+                    try {
+                        Log.d("JSON", "onResponse: object.toString= "+responseArrayList.getJSONObject(i).toString());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    Gson gson = new Gson();
+                    try {
+                        objectString = responseArrayList.getJSONObject(i).toString();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    Question newQuestion = new Question();
+                    newQuestion = gson.fromJson(objectString, Question.class);
+                    Log.d("GSON", "onResponse: new question= "+newQuestion.toString());
+                    questions.items.add(newQuestion);
+                }
+
+                if (questions.items  != null) {
+                    Log.d("response ArrayList", "questions.items size" + questions.items.size());
+                    Log.d("response ArrayList", "questions.items.toString: " + questions.items.toString());
+                }
 
                 //responseJSON = response.body();
                 Log.d("questionsCallback", "onResponse: pobrano dane z serwera ");
@@ -146,14 +184,14 @@ public class MainActivity extends AppCompatActivity {
                 // Odświeżenie widoku listy i informacji o pobranych danych
                 ((ItemQuestionAdapter)questionsListView.getAdapter()).notifyDataSetChanged();
                 questionsListView.setSelectionAfterHeaderView();
-                questionsFound.setText("We have found " + questions.items.size() + " questions");
+//                questionsFound.setText("We have found " + questions.items.size() + " questions");
             } else {
                 Log.d("QuestionsCallback", "Code: " + response.code() + " Message: " + response.message());
             }
         }
 
         @Override
-        public void onFailure(Call<QuestionsList<Question>> call, Throwable t) {
+        public void onFailure(Call<JSONArray> call, Throwable t) {
             Log.d("Callback failure", "onFailure: :/");
             t.printStackTrace();
         }
@@ -170,7 +208,9 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return questions.items.size();
+            if (questions.items != null)
+                return questions.items.size();
+            else return 0;
         }
 
         @Override
