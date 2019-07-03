@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.v7.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
-
-    <Spinner
-        android:id="@+id/spinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:spinnerMode="dropdown"/>
 
     <!--<TextView-->
         <!--android:layout_width="wrap_content"-->
@@ -81,16 +76,22 @@
 
     <!--</LinearLayout>-->
 
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:srcCompat="@drawable/skull" />
+
     <Button
+        android:id="@+id/btnSzukaj"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Szukaj wrakow"
-        android:id="@+id/btnSzukaj"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
+        android:layout_alignEnd="@+id/questionsListView"
         android:layout_alignRight="@+id/questionsListView"
-        android:layout_alignEnd="@+id/questionsListView" />
+        android:layout_alignParentStart="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentBottom="true"
+        android:text="Pobierz dane z API" />
 
     <!--<EditText-->
         <!--android:layout_width="fill_parent"-->
@@ -100,6 +101,27 @@
         <!--android:layout_centerHorizontal="true"-->
         <!--android:imeOptions="actionDone"-->
         <!--android:inputType="textNoSuggestions" />-->
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Wybierz typ wraku"
+        android:textSize="18sp" />
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:minHeight="24dp"
+        android:scrollbarSize="8dp"
+        android:spinnerMode="dropdown" />
+
+    <!--<Button-->
+        <!--android:id="@+id/button"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:text="FILTRUJ" />-->
 
     <ListView
         android:layout_width="wrap_content"
@@ -112,16 +134,16 @@
         android:layout_below="@+id/questionsFound" />
 
     <TextView
+        android:id="@+id/questionsFound"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="No questions asked so far..."
-        android:id="@+id/questionsFound"
         android:layout_below="@+id/editQueryString"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignParentRight="true"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentEnd="true"
-        android:textAlignment="center" />
+        android:layout_alignParentRight="true"
+        android:text="Dane nie zostały jeszcze pobrane"
+        android:textAlignment="center"
+        android:textAppearance="?android:attr/textAppearanceSmall" />
 
 </android.support.v7.widget.LinearLayoutCompat>

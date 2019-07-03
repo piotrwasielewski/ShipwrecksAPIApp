@@ -11,17 +11,25 @@ import com.google.gson.annotations.SerializedName;
         double londec;
 
         @SerializedName("_id")
-        public long id;
+        public String id;
 
         @Override
         public String toString() {
-            return (feature_type);
+            return ("id=" +id+" * type: "+feature_type+" * watlev= "+watlev+" * londec= "+londec+" * latdec= "+latdec+"\n");
         }
 
         public Question() {
         }
 
-        public Question(String feature_type, String watlev, double latdec, double londec, long id) {
+        public Question(Question q) {
+            this.feature_type = q.feature_type;
+            this.watlev = q.watlev;
+            this.latdec = q.latdec;
+            this.londec = q.londec;
+            this.id = q.id;
+        }
+
+        public Question(String feature_type, String watlev, double latdec, double londec, String id) {
             this.feature_type = feature_type;
             this.watlev = watlev;
             this.latdec = latdec;
@@ -29,11 +37,11 @@ import com.google.gson.annotations.SerializedName;
             this.id = id;
         }
 
-        public long getId() {
+        public String getId() {
             return id;
         }
 
-        public void setId(long id) {
+        public void setId(String id) {
             this.id = id;
         }
     }

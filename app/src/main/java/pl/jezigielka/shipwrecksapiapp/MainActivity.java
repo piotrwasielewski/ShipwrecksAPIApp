@@ -24,6 +24,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -44,9 +45,12 @@ public class MainActivity extends AppCompatActivity {
 
     EditText editQueryString;
     QuestionsList<Question> questions;
+    QuestionsList<Question> questionsBackup;
+
     ListView questionsListView;
     Context context = this;
     TextView questionsFound;
+
     ItemQuestionAdapter itemQuestionAdapter;
     Button btnSzukaj;
     Spinner dropdown;
@@ -56,14 +60,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         editQueryString = findViewById(R.id.editQueryString);
+
         questions = new QuestionsList<Question>();
         questions.items = new ArrayList<Question>();
 
+        questionsBackup = new QuestionsList<>();
+        questionsBackup.items = new ArrayList<>();
+
         //testowy wpis do sprawdzenia wyswietlenia listy
-        questions.items.add(0, new Question("aaa", "bbb", 2, 3, 11));
+        //questions.items.add(0, new Question("aaa", "bbb", 2, 3, "11"));
 
         questionsListView = findViewById(R.id.questionsListView);
-        questionsListView.setAdapter(new ItemQuestionAdapter());
+        itemQuestionAdapter = new ItemQuestionAdapter();
+        questionsListView.setAdapter(itemQuestionAdapter);
         questionsFound = findViewById(R.id.questionsFound);
 
         btnSzukaj = findViewById(R.id.btnSzukaj);
@@ -71,7 +80,10 @@ public class MainActivity extends AppCompatActivity {
         btnSzukaj.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                questions.items.clear();
+                questionsFound.setText("Pobieram dane z API. Poczekaj chwilę.");
                 setCatalogContent();
+                itemQuestionAdapter.notifyDataSetChanged();
                 Log.d("btnSzukaj", "onClick: klikam button");
 //                Log.d("btnSzukaj", "onClick: rozmiar listy: "+questions.items.size());
 
@@ -84,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
         //get the spinner from the xml.
         dropdown = findViewById(R.id.spinner);
         //create a list of items for the spinner.
-        String[] items = new String[]{"Visible", "Submerged", "Dangerous"};
+        String[] items = new String[]{"All", "Visible", "Submerged", "Dangerous"};
         //create an adapter to describe how the items are displayed, adapters are used in several places in android.
         //There are multiple variations of this, but this is the basic variant.
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, items);
@@ -94,9 +106,46 @@ public class MainActivity extends AppCompatActivity {
         dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position == 0) searchedType = "Visible";
-                else if (position == 1) searchedType = "Submerged";
-                else if (position == 2) searchedType = "Dangerous";
+                if (position == 0) searchedType = "";
+                else if (position == 1) searchedType = "Visible";
+                else if (position == 2) searchedType = "Submerged";
+                else if (position == 3) searchedType = "dangerous";
+
+                questionsFound.setText("Filtruję dane");
+                Log.d("questBackup.items PRZED", "onItemSelected: "+questionsBackup.items.size());
+                if (questions.items.size() > 3) {
+                    Log.d("questions.items PRZED", "onItemSelected: " + questions.items.size());
+                    Log.d("Test PRZED", "Czy q0 zawiera: " + questions.items.get(0).feature_type.contains(searchedType));
+                    Log.d("Test PRZED", "Czy q1 zawiera: " + questions.items.get(1).feature_type.contains(searchedType));
+                    Log.d("Test PRZED", "Czy q2 zawiera: " + questions.items.get(2).feature_type.contains(searchedType));
+                }
+
+
+                Log.d("quest.itemsPO clear", "onItemSelected: "+questions.items.size());
+
+                QuestionsList filteredList = new QuestionsList();
+                filteredList.items = new ArrayList<Question>();
+
+
+                for (Question q : questionsBackup.items
+                     ) {
+                    if (q.feature_type.contains(searchedType)) {
+                        filteredList.items.add(new Question(q));
+                    }
+
+
+                    Log.d("FILTER", "q.featureType= " +
+                            "Czy zawiera "+searchedType+"? -> "+q.feature_type.contains(searchedType));
+                }
+                //questions.items.clear();
+
+                questions = filteredList;
+
+                Log.d("quest.items PO filter", "onItemSelected: "+questions.items.size());
+
+                itemQuestionAdapter.notifyDataSetChanged();
+
+                Log.d("SPINNER", "onItemSelected: searchedType="+searchedType);
             }
 
             @Override
@@ -131,58 +180,76 @@ public class MainActivity extends AppCompatActivity {
     // Tytuł szukanego zapytania pochodzi ze spinnera
     // Klasa QuestionsCallback obsłuży metodę zwrotną
     public void setCatalogContent() {
-        herokuAPI.getQuestions().enqueue(questionsCallback);
+        herokuAPI.getQuestions(searchedType).enqueue(questionsCallback);
     }
 
 
     // Funkcje zwrotne wywoływane po zakończeniu zapytania API
     // Zawsze trzeba zdefiniować zachowanie Retrofita po udanym wywołaniu (onResponse)
     // i po błędzie (onFailure)
-    Callback <JSONArray> questionsCallback = new Callback<JSONArray>() {
+    Callback<List<Question>> questionsCallback = new Callback<List<Question>>() {
         @Override
-        public void onResponse(Call<JSONArray> call, Response<JSONArray> response) {
+        public void onResponse(Call<List<Question>> call, Response<List<Question>> response) {
             if (response.isSuccessful()) {
                 // Pobranie danych z odpowiedzi serwera
-                JSONArray responseArrayList = response.body();
-                Log.d("response ArrayList", "onResponse: Array size:"+responseArrayList.length());
-                try {
-                    Log.d("response ArrayList", "Element[0] z arraylisty"+responseArrayList.getJSONObject(0).toString());
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                List<Question> responseArrayList = response.body();
+                Log.d("JSON", "onResponse: "+responseArrayList.toString());
+                Gson gson = new GsonBuilder()
+                        .setLenient()
+                        .create();
+                //questions.items = gson.fromJson(response.body().toString().trim(), List.class);
 
-                for (int i=0; i<responseArrayList.length(); i++) {
-                   // Log.d("JSON", "onResponse: klasa obiektu w responseArrayList= "+object.getClass());
-                    String objectString = "test";
-                    try {
-                        Log.d("JSON", "onResponse: object.toString= "+responseArrayList.getJSONObject(i).toString());
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
+                //itemQuestionAdapter.notifyDataSetChanged();
+//                for (Question q:questions.items
+//                     ) {
+//                    Log.d("questions.items", "onResponse: "+questions.items.toString());
+//
+//                }
 
-                    Gson gson = new Gson();
-                    try {
-                        objectString = responseArrayList.getJSONObject(i).toString();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
 
-                    Question newQuestion = new Question();
-                    newQuestion = gson.fromJson(objectString, Question.class);
-                    Log.d("GSON", "onResponse: new question= "+newQuestion.toString());
-                    questions.items.add(newQuestion);
-                }
+                Log.d("response ArrayList", "onResponse: Array size:"+responseArrayList.size());
+//                try {
+//                    Log.d("response ArrayList", "Element[0] z arraylisty"+responseArrayList.toString());
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+
+//                for (int i=0; i<responseArrayList.length(); i++) {
+//                   // Log.d("JSON", "onResponse: klasa obiektu w responseArrayList= "+object.getClass());
+//                    String objectString = "test";
+//                    try {
+//                        Log.d("JSON", "onResponse: object.toString= "+responseArrayList.getJSONObject(i).toString());
+//                    } catch (JSONException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    //Gson gson = new Gson();
+//                    try {
+//                        objectString = responseArrayList.getJSONObject(i).toString();
+//                    } catch (JSONException e) {
+//                        e.printStackTrace();
+//                    }
+//
+//                    Question newQuestion = new Question();
+//                    newQuestion = gson.fromJson(objectString, Question.class);
+//                    Log.d("GSON", "onResponse: new question= "+newQuestion.toString());
+//                    questions.items.add(newQuestion);
+//                }
 
                 if (questions.items  != null) {
-                    Log.d("response ArrayList", "questions.items size" + questions.items.size());
+                    Log.d("response ArrayList", "questions.items.size()= " + questions.items.size());
                     Log.d("response ArrayList", "questions.items.toString: " + questions.items.toString());
                 }
 
                 //responseJSON = response.body();
+
                 Log.d("questionsCallback", "onResponse: pobrano dane z serwera ");
 
                 // Odświeżenie widoku listy i informacji o pobranych danych
-                ((ItemQuestionAdapter)questionsListView.getAdapter()).notifyDataSetChanged();
+                questions.items = responseArrayList;
+                questionsBackup = new QuestionsList<>(questions);
+
+                itemQuestionAdapter.notifyDataSetChanged();
                 questionsListView.setSelectionAfterHeaderView();
 //                questionsFound.setText("We have found " + questions.items.size() + " questions");
             } else {
@@ -191,8 +258,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onFailure(Call<JSONArray> call, Throwable t) {
+        public void onFailure(Call<List<Question>> call, Throwable t) {
             Log.d("Callback failure", "onFailure: :/");
+            Log.d("Callback failure", Log.getStackTraceString(t));
             t.printStackTrace();
         }
     };
@@ -208,7 +276,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            if (questions.items != null)
+            if (questions != null && questions.items != null)
                 return questions.items.size();
             else return 0;
         }
@@ -234,8 +302,8 @@ public class MainActivity extends AppCompatActivity {
             TextView tvSzerokosc = rowView.findViewById(R.id.szerokosc);
 
             Question currentQuestion = questions.items.get(position);
-            tvTyp.setText(currentQuestion.feature_type.toString());
-            tvWatlev.setText(currentQuestion.watlev.toString());
+            tvTyp.setText(currentQuestion.feature_type);
+            tvWatlev.setText(currentQuestion.watlev);
             tvDlugosc.setText(Double.toString(currentQuestion.londec));
             tvSzerokosc.setText(Double.toString(currentQuestion.latdec));
 
